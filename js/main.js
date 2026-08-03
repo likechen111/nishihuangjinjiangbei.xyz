@@ -33,7 +33,7 @@ window.addEventListener('load', async () => {
         });
 
         // 对第二个沉浸式大视频使用 fetch 主动装载入磁盘缓存区
-        fetch('assets/video/background2.mp4').catch(err => console.log('Video preload muted:', err));
+        // bg2 preload removed for perf;
     }
 });
 
@@ -593,14 +593,14 @@ function initRaindrop() {
         raindropFx = new RaindropFX({
             canvas: canvas,
             background: backgroundImage,
-            gravity: 1200,          // 重力：雨滴下落速度（越小越慢）
-            dropletsPerSeconds: 150, // 雨滴数量：每秒雨滴数（越少越稀疏）
+            gravity: 800,          // 重力：雨滴下落速度（越小越慢）
+            dropletsPerSeconds: 60, // 雨滴数量：每秒雨滴数（越少越稀疏）
             dropletSize: [8, 20],   // 雨滴大小：[最小, 最大]
             trailDropDensity: 0.15, // 轨迹密度：雨滴拖尾（越小越淡）
             mist: true,
             mistBlurStep: 3,        // 雾效模糊：数字越大越模糊 (1-10)
             mistTime: 99999,        // 防止内部默认 10s 的定时擦除重置效果
-            backgroundBlurSteps: 3, // 背景模糊：数字越大越模糊 (1-5)
+            backgroundBlurSteps: 2, // 背景模糊：数字越大越模糊 (1-5)
         });
 
         raindropFx.start();
@@ -652,13 +652,13 @@ function toggleRaindrop() {
                     canvas: canvas,
                     background: backgroundImage,
                     gravity: 600,            
-                    dropletsPerSeconds: 50,  
+                    dropletsPerSeconds: 25,  
                     dropletSize: [8, 20],    
                     trailDropDensity: 0.1,   
                     mist: true,
-                    mistBlurStep: 5,        
+                    mistBlurStep: 3,        
                     mistTime: 99999,        
-                    backgroundBlurSteps: 3, 
+                    backgroundBlurSteps: 2, 
                 });
                 
                 raindropFx.start();

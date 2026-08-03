@@ -26,7 +26,7 @@ body {
     z-index: -2;
 }
 
-.video-background video {
+.video-background video {`r`n  transform: translateZ(0);
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -38,7 +38,7 @@ body {
 }
 
 /* 打字机特效 - 右下角（时间） */
-.typing-container {
+.typing-container {`r`n  will-change: transform, opacity;
     position: fixed;
     bottom: 50px;
     right: 50px;
@@ -46,7 +46,7 @@ body {
 }
 
 /* 打字机特效 - 左上角 */
-.typing-topleft-container {
+.typing-topleft-container {`r`n  will-change: transform, opacity;
     position: fixed;
     top: 50px;
     left: 50px;
@@ -96,7 +96,7 @@ body {
 }
 
 /* 导航栏 - 左侧 Products 按钮 */
-.navbar-left {
+.navbar-left {`r`n  will-change: transform, opacity;
     position: fixed;
     top: 150px;
     left: 50px;
@@ -209,7 +209,7 @@ body {
 }
 
 /* 导航栏 - 右上角 */
-.navbar-right {
+.navbar-right {`r`n  will-change: transform, opacity;
     position: fixed;
     top: 20px;
     right: 50px;
@@ -793,7 +793,7 @@ body {
 /* ========================================
    Miku 看板娘 (Mascot)
    ======================================== */
-.miku-mascot-container {
+.miku-mascot-container {`r`n  will-change: transform;`r`n  transform: translateZ(0);
     position: fixed;
     left: 20px;
     bottom: 20px;
