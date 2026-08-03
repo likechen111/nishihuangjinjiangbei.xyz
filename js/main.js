@@ -593,14 +593,14 @@ function initRaindrop() {
         raindropFx = new RaindropFX({
             canvas: canvas,
             background: backgroundImage,
-            gravity: 800,          // 重力：雨滴下落速度（越小越慢）
-            dropletsPerSeconds: 60, // 雨滴数量：每秒雨滴数（越少越稀疏）
+            gravity: perfTier === "low" ? 500 : perfTier === "mid" ? 650 : 800,  // 重力：雨滴下落速度（越小越慢）
+            dropletsPerSeconds: perfTier === "low" ? 15 : perfTier === "mid" ? 30 : 60, // 雨滴数量：每秒雨滴数（越少越稀疏）
             dropletSize: [8, 20],   // 雨滴大小：[最小, 最大]
-            trailDropDensity: 0.08, // 轨迹密度：雨滴拖尾（越小越淡）
-            mist: false,
+            trailDropDensity: perfTier === "low" ? 0 : perfTier === "mid" ? 0.04 : 0.08, // 轨迹密度：雨滴拖尾（越小越淡）
+            mist: perfTier === "high" ? true : false,
             mistBlurStep: 3,        // 雾效模糊：数字越大越模糊 (1-10)
             mistTime: 99999,        // 防止内部默认 10s 的定时擦除重置效果
-            backgroundBlurSteps: 2, // 背景模糊：数字越大越模糊 (1-5)
+            backgroundBlurSteps: perfTier === "low" ? 1 : perfTier === "mid" ? 1 : 2, // 背景模糊：数字越大越模糊 (1-5)
         });
 
         raindropFx.start();
@@ -652,10 +652,10 @@ function toggleRaindrop() {
                     canvas: canvas,
                     background: backgroundImage,
                     gravity: 600,            
-                    dropletsPerSeconds: 25,  
+                    dropletsPerSeconds: perfTier === "low" ? 8 : perfTier === "mid" ? 15 : 25,  
                     dropletSize: [8, 20],    
                     trailDropDensity: 0.1,   
-                    mist: false,
+                    mist: perfTier === "high" ? true : false,
                     mistBlurStep: 3,        
                     mistTime: 99999,        
                     backgroundBlurSteps: 2, 
