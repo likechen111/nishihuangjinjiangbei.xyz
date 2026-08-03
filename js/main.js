@@ -33,7 +33,7 @@ window.addEventListener('load', async () => {
         });
 
         // 对第二个沉浸式大视频使用 fetch 主动装载入磁盘缓存区
-        // bg2 preload removed for perf;
+        // preload removed
     }
 });
 
@@ -88,33 +88,33 @@ async function playIntroAnimation() {
         opacity: 1,
         y: 0,
         duration: 1.2,
-        ease: 'power3.out'
+        ease: 'power3.out', force3D: true, force3D: true
     }, '+=0.3')
     .to('.navbar-left', {
         opacity: 1,
         x: 0,
         duration: 1.2,
-        ease: 'power3.out'
+        ease: 'power3.out', force3D: true, force3D: true
     }, '-=1.0')
     .to('.typing-topleft-container', {
         opacity: 1,
         y: 0,
         duration: 1.2,
-        ease: 'power3.out',
+        ease: 'power3.out', force3D: true, force3D: true,
         onStart: startTypedLeft
     }, '-=1.1')
     .to('.typing-container', {
         opacity: 1,
         y: 0,
         duration: 1.2,
-        ease: 'power3.out',
+        ease: 'power3.out', force3D: true, force3D: true,
         onStart: startTyped
     }, '-=1.1')
     .to('.miku-mascot-container, .miku-item-container', {
         opacity: 1,
         y: 0,
         duration: 1.5,
-        ease: 'back.out(1.7)',
+        ease: 'back.out(1.7)', force3D: true,
         onComplete: () => {
             initMikuLogic();
             // 动画结束后，彻底隐藏 loader 节点以防影响页面点击
@@ -290,7 +290,7 @@ function initMikuLogic() {
             opacity: 0,
             y: 40,
             duration: 1.5,
-            ease: 'power2.inOut',
+            ease: 'power2.inOut', force3D: true,
             onComplete: () => {
                 mikuMascot.style.visibility = 'hidden';
                 mikuMascot.style.display = 'none'; // 彻底移除占位
@@ -334,7 +334,7 @@ function initMikuLogic() {
             opacity: 1,
             y: 0,
             duration: 1.5,
-            ease: 'back.out(1.7)',
+            ease: 'back.out(1.7)', force3D: true,
             delay: 0.8
         });
         
@@ -384,7 +384,7 @@ function initSaberLogic() {
             opacity: 1,
             y: 0,
             duration: 1.5,
-            ease: 'back.out(1.7)',
+            ease: 'back.out(1.7)', force3D: true,
             delay: 0.8
         });
     };
@@ -475,7 +475,7 @@ function initSaberLogic() {
             opacity: 0,
             y: 40,
             duration: 1.5,
-            ease: 'power2.inOut',
+            ease: 'power2.inOut', force3D: true,
             onComplete: () => {
                 saberMascot.style.visibility = 'hidden';
                 saberMascot.style.display = 'none';
@@ -596,8 +596,8 @@ function initRaindrop() {
             gravity: 800,          // 重力：雨滴下落速度（越小越慢）
             dropletsPerSeconds: 60, // 雨滴数量：每秒雨滴数（越少越稀疏）
             dropletSize: [8, 20],   // 雨滴大小：[最小, 最大]
-            trailDropDensity: 0.15, // 轨迹密度：雨滴拖尾（越小越淡）
-            mist: true,
+            trailDropDensity: 0.08, // 轨迹密度：雨滴拖尾（越小越淡）
+            mist: false,
             mistBlurStep: 3,        // 雾效模糊：数字越大越模糊 (1-10)
             mistTime: 99999,        // 防止内部默认 10s 的定时擦除重置效果
             backgroundBlurSteps: 2, // 背景模糊：数字越大越模糊 (1-5)
@@ -655,7 +655,7 @@ function toggleRaindrop() {
                     dropletsPerSeconds: 25,  
                     dropletSize: [8, 20],    
                     trailDropDensity: 0.1,   
-                    mist: true,
+                    mist: false,
                     mistBlurStep: 3,        
                     mistTime: 99999,        
                     backgroundBlurSteps: 2, 
@@ -693,7 +693,7 @@ function showProductsPanelAnim(panel) {
             opacity: 1, 
             duration: 0.6, 
             stagger: 0.1, 
-            ease: 'power3.out', 
+            ease: 'power3.out', force3D: true, force3D: true, 
             delay: 0.2,
             clearProps: 'transform' 
         }
@@ -923,7 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             // 取消原本 navbar-left 的左滑脱出
             duration: 0.8,
-            ease: 'power2.in',
+            ease: 'power2.in', force3D: true,
             stagger: 0.1
         });
 
@@ -964,13 +964,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 确保 Products 按钮入场前重置到左侧，保持左进动作
                 gsap.set('.navbar-left', { x: -40, y: 0 });
                 
-                gsap.to('.navbar-right', { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.5 });
-                gsap.to('.navbar-left', { opacity: 1, x: 0, duration: 1, ease: 'power3.out', delay: 0.6 });
+                gsap.to('.navbar-right', { opacity: 1, y: 0, duration: 1, ease: 'power3.out', force3D: true, force3D: true, delay: 0.5 });
+                gsap.to('.navbar-left', { opacity: 1, x: 0, duration: 1, ease: 'power3.out', force3D: true, force3D: true, delay: 0.6 });
                 gsap.to('.typing-topleft-container, .typing-container', { 
                     opacity: 1, 
                     y: 0, 
                     duration: 1, 
-                    ease: 'power3.out', 
+                    ease: 'power3.out', force3D: true, force3D: true, 
                     delay: 0.7 
                 });
             };
