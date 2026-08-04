@@ -1,4 +1,4 @@
-@import url('https://fonts.cdnfonts.com/css/general-sans');
+﻿@import url('https://fonts.cdnfonts.com/css/general-sans');
 
 * {
     margin: 0;
@@ -80,6 +80,7 @@ body {
 
 /* 雨滴效果 Canvas */
 .raindrop-canvas {`r`n  contain: strict;
+    image-rendering: auto;
     position: fixed;
     top: 0;
     left: 0;
@@ -544,6 +545,7 @@ body {
     align-items: center;
     pointer-events: none;
     opacity: 0;
+    will-change: opacity;
     transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -996,4 +998,4 @@ body {
         transform: scale(1) rotate(90deg);
     }
 }
-
+

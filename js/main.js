@@ -1,4 +1,4 @@
-// GSAP 开屏动画与静默预加载
+﻿// GSAP 开屏动画与静默预加载
 window.addEventListener('load', async () => {
     // 隐藏初始资源加载动画
     const initialLoader = document.getElementById('initialLoader');
@@ -557,122 +557,123 @@ function startTypedLeft() {
     });
 }
 
+// 简易 GPU 性能分级：核显/低端 → low，中端 → mid，独显 → high
+const perfTier = (() => {
+    try {
+        const probe = document.createElement('canvas');
+        const gl = probe.getContext('webgl2') || probe.getContext('webgl');
+        if (!gl) return 'low';
+        const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+        const renderer = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '') : '';
+        if (/geforce rtx|radeon rx|radeon (pro )?vega|arc/i.test(renderer)) return 'high';
+        if (/intel|uhd|hd graphics|iris/i.test(renderer)) return 'low';
+        return 'mid';
+    } catch (e) {
+        return 'low';
+    }
+})();
+
 // 雨滴效果全局变量
 let raindropFx = null;
 let isRaindropActive = false;
+let videoPausedForPanel = false;
 
-// 初始化雨滴效果
-function initRaindrop() {
-    // 已经初始化过则不再重复执行，防止背景视频 loop 时触发 canplay 事件导致反复重启
-    if (raindropFx) return;
-
-    const canvas = document.getElementById('raindropCanvas');
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-
-    try {
-        // 等待视频加载完成后再截图
-        const video = document.querySelector('.video-background video');
-        
-        // 如果视频还没准备好，使用默认设置
-        if (!video.videoWidth) {
-            console.log('Video not ready, using default settings');
-            // 延迟初始化
-            setTimeout(initRaindrop, 500);
-            return;
-        }
-        
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = video.videoWidth || 1920;
-        tempCanvas.height = video.videoHeight || 1080;
-        const ctx = tempCanvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-        const backgroundImage = tempCanvas.toDataURL('image/jpeg');
-        
-        raindropFx = new RaindropFX({
-            canvas: canvas,
-            background: backgroundImage,
-            gravity: perfTier === "low" ? 500 : perfTier === "mid" ? 650 : 800,  // 重力：雨滴下落速度（越小越慢）
-            dropletsPerSeconds: perfTier === "low" ? 15 : perfTier === "mid" ? 30 : 60, // 雨滴数量：每秒雨滴数（越少越稀疏）
-            dropletSize: [8, 20],   // 雨滴大小：[最小, 最大]
-            trailDropDensity: perfTier === "low" ? 0 : perfTier === "mid" ? 0.04 : 0.08, // 轨迹密度：雨滴拖尾（越小越淡）
-            mist: perfTier === "high" ? true : false,
-            mistBlurStep: 3,        // 雾效模糊：数字越大越模糊 (1-10)
-            mistTime: 99999,        // 防止内部默认 10s 的定时擦除重置效果
-            backgroundBlurSteps: perfTier === "low" ? 1 : perfTier === "mid" ? 1 : 2, // 背景模糊：数字越大越模糊 (1-5)
-        });
-
-        raindropFx.start();
-    } catch (error) {
-        console.error('Raindrop init error:', error);
-    }
+// 液态玻璃兜底/低端 GPU 统一入口：使用硬件加速 CSS backdrop-filter 毛玻璃
+function applyCssGlassFallback(panel) {
+    panel.style.backdropFilter = 'blur(10px)';
+    panel.style.webkitBackdropFilter = 'blur(10px)';
+    panel.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+    showProductsPanelAnim(panel);
 }
 
-// 切换雨滴效果
+// 切换雨滴效果（Products 面板开/关）
 function toggleRaindrop() {
     const canvas = document.getElementById('raindropCanvas');
     const productsPanel = document.getElementById('productsPanel');
+    const bgVideo = document.getElementById('bgVideo');
     isRaindropActive = !isRaindropActive;
-    
-    // 判断是否在第二界面 (深色主题)
-    const isDarkTheme = document.body.classList.contains('dark-theme');
-    
-    if (isRaindropActive) {
-        if (isDarkTheme) {
-            // 第二界面：不需要抓取屏幕或WebGL，直接加上原生 CSS 毛玻璃
-            productsPanel.style.backdropFilter = 'blur(15px)';
-            productsPanel.style.webkitBackdropFilter = 'blur(15px)';
-            productsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-            
-            showProductsPanelAnim(productsPanel);
-        } else {
-            // 重置内联样式
-            productsPanel.style.backdropFilter = 'none';
-            productsPanel.style.webkitBackdropFilter = 'none';
-            productsPanel.style.backgroundColor = 'transparent';
-            
-            // 截取当前完整画面（包括视频、打字机等所有元素）
-            captureFullScreen().then(backgroundImage => {
-                if (!backgroundImage) {
-                    // Fallback for file:// protocol or CORS taint
-                    productsPanel.style.backdropFilter = 'blur(15px)';
-                    productsPanel.style.webkitBackdropFilter = 'blur(15px)';
-                    productsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-                    showProductsPanelAnim(productsPanel);
-                    return;
-                }
 
-                // 更新雨滴背景
-                if (raindropFx) {
-                    raindropFx.stop();
-                }
-                
-                raindropFx = new RaindropFX({
-                    canvas: canvas,
-                    background: backgroundImage,
-                    gravity: 600,            
-                    dropletsPerSeconds: perfTier === "low" ? 8 : perfTier === "mid" ? 15 : 25,  
-                    dropletSize: [8, 20],    
-                    trailDropDensity: 0.1,   
-                    mist: perfTier === "high" ? true : false,
-                    mistBlurStep: 3,        
-                    mistTime: 99999,        
-                    backgroundBlurSteps: 2, 
-                });
-                
-                raindropFx.start();
-                canvas.classList.add('active');
-                
-                showProductsPanelAnim(productsPanel);
-            });
-        }
-    } else {
-        canvas.classList.remove('active');
+    if (isRaindropActive) {
+        // 清掉可能残留的毛玻璃内联样式，统一使用静态截图 + WebGL 玻璃
         productsPanel.style.backdropFilter = 'none';
         productsPanel.style.webkitBackdropFilter = 'none';
         productsPanel.style.backgroundColor = 'transparent';
-        
+        productsPanel.style.backgroundImage = 'none';
+
+        // === 低端 GPU：完全跳过 WebGL RaindropFX，仅用 CSS 毛玻璃 ===
+        if (perfTier === "low") {
+            // 仍暂停视频以节省解码资源
+            if (bgVideo && !bgVideo.paused) {
+                bgVideo.pause();
+                videoPausedForPanel = true;
+            }
+            applyCssGlassFallback(productsPanel);
+            return;
+        }
+
+        // === 中/高端 GPU：WebGL 雨滴 + CSS 毛玻璃，但砍掉 WebGL 内部模糊步骤 ===
+        captureFullScreen().then(backgroundImage => {
+            if (!backgroundImage) {
+                applyCssGlassFallback(productsPanel);
+                return;
+            }
+
+            // 面板已用静态截图提供背景，暂停视频解码以大幅降低 GPU/CPU 占用
+            if (bgVideo && !bgVideo.paused) {
+                bgVideo.pause();
+                videoPausedForPanel = true;
+            }
+
+
+            // 降低 WebGL 渲染分辨率以减轻 GPU 负担
+            const resScale = perfTier === "mid" ? 0.65 : 0.85;
+            canvas.width  = Math.round(window.innerWidth  * resScale);
+            canvas.height = Math.round(window.innerHeight * resScale);
+
+            if (raindropFx) raindropFx.stop();
+            raindropFx = new RaindropFX({
+                canvas: canvas,
+                background: backgroundImage,
+                gravity: perfTier === "mid" ? 650 : 800,
+                dropletsPerSeconds: perfTier === "mid" ? 8 : 16,
+                dropletSize: [8, 20],
+                trailDropDensity: perfTier === "mid" ? 0.02 : 0.06,
+                mist: false,                    // 全部关闭雾效，节省大量 GPU 着色
+                backgroundBlurSteps: 0,          // 全部去掉 WebGL 内部模糊，用下面 CSS 替代
+            });
+
+            raindropFx.start();
+            canvas.classList.add('active');
+
+            // 用 CSS backdrop-filter 提供液态玻璃模糊效果（浏览器 GPU 合成器硬件加速，远轻于 WebGL 逐帧模糊）
+            productsPanel.style.backdropFilter = 'blur(8px)';
+            productsPanel.style.webkitBackdropFilter = 'blur(8px)';
+            productsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.18)';
+
+            showProductsPanelAnim(productsPanel);
+        }).catch(() => {
+            applyCssGlassFallback(productsPanel);
+        });
+    } else {
+        canvas.classList.remove('active');
+
+        // 关闭面板后停止 WebGL 雨滴渲染，避免不可见时仍白跑 GPU
+        if (raindropFx) {
+            raindropFx.stop();
+            raindropFx = null;
+        }
+
+        // 恢复被面板暂停的背景视频
+        if (videoPausedForPanel && bgVideo) {
+            bgVideo.play().catch(() => {});
+            videoPausedForPanel = false;
+        }
+
+        productsPanel.style.backdropFilter = 'none';
+        productsPanel.style.webkitBackdropFilter = 'none';
+        productsPanel.style.backgroundColor = 'transparent';
+        productsPanel.style.backgroundImage = 'none';
+
         // 隐藏产品面板
         productsPanel.classList.remove('active');
         // 清除尚未完成的入场动画，并重置所有的变换内联样式
@@ -704,55 +705,52 @@ function showProductsPanelAnim(panel) {
 // 截取完整屏幕（包括所有元素）
 function captureFullScreen() {
     return new Promise((resolve) => {
-        // 临时隐藏雨滴 canvas
-        const raindropCanvas = document.getElementById('raindropCanvas');
-        const wasActive = raindropCanvas.classList.contains('active');
-        raindropCanvas.classList.remove('active');
-        
-        // 使用 html2canvas 或类似库，或者使用浏览器原生截图 API
-        // 这里使用简单的 canvas 绘制方法
-        const dpr = window.devicePixelRatio || 1;
-        const captureCanvas = document.createElement('canvas');
-        captureCanvas.width = window.innerWidth * dpr;
-        captureCanvas.height = window.innerHeight * dpr;
-        const ctx = captureCanvas.getContext('2d');
-        ctx.scale(dpr, dpr);
-        
-        // 获取视频元素
-        const video = document.querySelector('.video-background video');
-        
-        // 绘制视频帧
-        if (video && video.videoWidth) {
-            const videoRatio = video.videoWidth / video.videoHeight;
-            const screenRatio = window.innerWidth / window.innerHeight;
-            let drawWidth, drawHeight, drawX, drawY;
-            
-            if (screenRatio > videoRatio) {
-                drawWidth = window.innerWidth;
-                drawHeight = window.innerWidth / videoRatio;
-                drawX = 0;
-                drawY = (window.innerHeight - drawHeight) / 2;
-            } else {
-                drawHeight = window.innerHeight;
-                drawWidth = window.innerHeight * videoRatio;
-                drawX = (window.innerWidth - drawWidth) / 2;
-                drawY = 0;
-            }
-            
-            ctx.drawImage(video, drawX, drawY, drawWidth, drawHeight);
-        }
-        
-        // 绘制打字机文字 - 使用与实际 CSS 相同的位置
-        drawTextToCanvas(ctx, '.typing-topleft', 50, 50);
-        drawTextToCanvas(ctx, '.typing', window.innerWidth - 50, window.innerHeight - 50, 'right', 'bottom');
-        
-        // 恢复雨滴 canvas 状态
-        if (wasActive) {
-            raindropCanvas.classList.add('active');
-        }
-        
         try {
-            const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.9);
+            // 临时隐藏雨滴 canvas
+            const raindropCanvas = document.getElementById('raindropCanvas');
+            const wasActive = raindropCanvas.classList.contains('active');
+            raindropCanvas.classList.remove('active');
+
+            // 截图尺寸封顶到 1.5x，降低纹理内存与编码耗时
+            const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+            const captureCanvas = document.createElement('canvas');
+            captureCanvas.width = window.innerWidth * dpr;
+            captureCanvas.height = window.innerHeight * dpr;
+            const ctx = captureCanvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            // 绘制视频帧（视频未就绪时跳过，避免 drawImage 抛异常导致面板无法打开）
+            const video = document.querySelector('.video-background video');
+            if (video && video.videoWidth && video.readyState >= 2) {
+                const videoRatio = video.videoWidth / video.videoHeight;
+                const screenRatio = window.innerWidth / window.innerHeight;
+                let drawWidth, drawHeight, drawX, drawY;
+
+                if (screenRatio > videoRatio) {
+                    drawWidth = window.innerWidth;
+                    drawHeight = window.innerWidth / videoRatio;
+                    drawX = 0;
+                    drawY = (window.innerHeight - drawHeight) / 2;
+                } else {
+                    drawHeight = window.innerHeight;
+                    drawWidth = window.innerHeight * videoRatio;
+                    drawX = (window.innerWidth - drawWidth) / 2;
+                    drawY = 0;
+                }
+
+                ctx.drawImage(video, drawX, drawY, drawWidth, drawHeight);
+            }
+
+            // 绘制打字机文字 - 使用与实际 CSS 相同的位置
+            drawTextToCanvas(ctx, '.typing-topleft', 50, 50);
+            drawTextToCanvas(ctx, '.typing', window.innerWidth - 50, window.innerHeight - 50, 'right', 'bottom');
+
+            // 恢复雨滴 canvas 状态
+            if (wasActive) {
+                raindropCanvas.classList.add('active');
+            }
+
+            const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.85);
             resolve(dataUrl);
         } catch (e) {
             console.warn('Canvas toDataURL failed (likely CORS or file:// protocol taint). Falling back to CSS blur.');
@@ -776,7 +774,6 @@ function drawTextToCanvas(ctx, selector, x, y, align = 'left', baseline = 'top')
     if (selector === '.typing') {
         // 直接读取当前显示的时间文本
         text = element.innerText || element.textContent || '';
-        console.log('Time text:', text); // 调试用
     }
     
     // 获取光标元素
@@ -812,14 +809,6 @@ function drawTextToCanvas(ctx, selector, x, y, align = 'left', baseline = 'top')
 
 // 导航栏交互
 document.addEventListener('DOMContentLoaded', () => {
-    // 等待视频加载完成后再初始化雨滴效果
-    const video = document.querySelector('.video-background video');
-    if (video.readyState >= 3) {
-        initRaindrop();
-    } else {
-        video.addEventListener('canplay', initRaindrop);
-    }
-
     const audioIndicator = document.getElementById('audioIndicator');
     const indicatorLines = audioIndicator.querySelectorAll('.indicator-line');
     const bgMusic = document.getElementById('bgMusic');
@@ -959,6 +948,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 bgVideo.oncanplay = null; // 极度关键：防止视频 loop 时无限反复触发进场动画
                 
                 bgVideo.classList.remove('video-fade-out');
+
+                // 若产品面板仍打开，切换背景后用新视频帧重建玻璃背景
+                const productsPanel = document.getElementById('productsPanel');
+                if (productsPanel && productsPanel.classList.contains('active')) {
+                    captureFullScreen().then(backgroundImage => {
+                        if (backgroundImage && raindropFx) {
+                            raindropFx.setBackground(backgroundImage);
+                        }
+                    }).catch(() => {});
+                }
                 
                 // 2. UI 重新流畅滑入
                 // 确保 Products 按钮入场前重置到左侧，保持左进动作
@@ -970,7 +969,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     opacity: 1, 
                     y: 0, 
                     duration: 1, 
-                    ease: 'power3.out', force3D: true, force3D: true, 
+            ease: 'power3.out', force3D: true,
                     delay: 0.7 
                 });
             };
