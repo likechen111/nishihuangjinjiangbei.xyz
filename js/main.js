@@ -934,9 +934,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         perfTierBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            tierDropdown.classList.toggle('open');
+            const isOpen = tierDropdown.classList.toggle('open');
+            if (isOpen) setTimeout(() => document.addEventListener('click', () => tierDropdown.classList.remove('open'), { once: true }), 0);
         });
-        document.addEventListener('click', () => tierDropdown.classList.remove('open'));
     }
 
             // Products 按钮点击效果 - 切换雨滴
