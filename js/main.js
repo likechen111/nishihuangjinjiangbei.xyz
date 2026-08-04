@@ -657,9 +657,7 @@ function toggleRaindrop() {
                 });
                 raindropFx.start();
                 canvas.classList.add('active');
-                productsPanel.style.backdropFilter = 'blur(6px)';
-                productsPanel.style.webkitBackdropFilter = 'blur(6px)';
-                productsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.12)';
+                productsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.08)';
                 showProductsPanelAnim(productsPanel);
             }).catch(() => {
                 applyCssGlassFallback(productsPanel);
@@ -698,9 +696,7 @@ function toggleRaindrop() {
             raindropFx.start();
             canvas.classList.add('active');
 
-            productsPanel.style.backdropFilter = 'blur(8px)';
-            productsPanel.style.webkitBackdropFilter = 'blur(8px)';
-            productsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.18)';
+            productsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.12)';
 
             showProductsPanelAnim(productsPanel);
         }).catch(() => {
