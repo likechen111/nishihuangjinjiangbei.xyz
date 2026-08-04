@@ -1063,10 +1063,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
-            e.preventDefault();
             const target = link.getAttribute('href');
-            console.log(`Navigating to ${target}`);
-            // 可以添加平滑滚动或其他交互
+            if (!target) return;  // tier button has no href, let its own handler manage
+            e.preventDefault();
+            if (target.startsWith('#')) {
+                const el = document.querySelector(target);
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }
         });
+    });
     });
 });
