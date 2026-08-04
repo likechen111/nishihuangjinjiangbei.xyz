@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>测试</title>
-    <link rel="stylesheet" href="css/style.css?v=1.8">
+    <link rel="stylesheet" href="css/style.css?v=1.9">
     
     <!-- 核心资源强制预加载，极大降低交互延迟 -->
     <link rel="preload" as="image" href="assets/image/miku_leek.png">
@@ -58,7 +58,15 @@
             <a href="#prologue" class="nav-link">Prologue</a>
             <a href="#about" class="nav-link">About</a>
             <a href="#contact" class="nav-link">Contact</a>
-            <span class="nav-link nav-tier-btn" id="perfTierBtn"><span class="nav-tier-label">AUTO</span>`r`n                <div class="tier-dropdown" id="tierDropdown">`r`n                    <div class="tier-option" data-val="">AUTO</div>`r`n                    <div class="tier-option" data-val="software">SMOOTH</div>`r`n                    <div class="tier-option" data-val="low">ECO</div>`r`n                    <div class="tier-option" data-val="mid">BALANCED</div>`r`n                    <div class="tier-option" data-val="high">QUALITY</div>`r`n                </div>`r`n            </span>
+            <span class="nav-link nav-tier-btn" id="perfTierBtn"><span class="nav-tier-label">AUTO</span>
+                <div class="tier-dropdown" id="tierDropdown">
+                    <div class="tier-option" data-val="">AUTO</div>
+                    <div class="tier-option" data-val="software">SMOOTH</div>
+                    <div class="tier-option" data-val="low">ECO</div>
+                    <div class="tier-option" data-val="mid">BALANCED</div>
+                    <div class="tier-option" data-val="high">QUALITY</div>
+                </div>
+            </span>
         </div>
 
         <button class="audio-indicator" id="audioIndicator">
@@ -106,7 +114,7 @@
                             <path d="M7 17L17 7M17 7H7M17 7V17" />
                         </svg>
                     </div>
-                </span>
+                </a>
 
                 <!-- GCLI2API -->
                 <a href="https://gcli.nishihuangjinjiangbei.xyz/" target="_blank" class="product-card" id="cardGcli">
@@ -130,7 +138,7 @@
                             <path d="M7 17L17 7M17 7H7M17 7V17" />
                         </svg>
                     </div>
-                </span>
+                </a>
 
                 <!-- CLI Proxy API -->
                 <a href="https://codex.nishihuangjinjiangbei.xyz/management.html" target="_blank" class="product-card"
@@ -155,7 +163,7 @@
                             <path d="M7 17L17 7M17 7H7M17 7V17" />
                         </svg>
                     </div>
-                </span>
+                </a>
             </div>
         </div>
     </div>
@@ -201,9 +209,9 @@
     </div>
 
     <!-- Raindrop FX -->
-    <script src="js/raindrop-fx.js?v=1.8"></script>
+    <script src="js/raindrop-fx.js?v=1.9"></script>
     <!-- Main Logic -->
-    <script src="js/main.js?v=1.8"></script>
+    <script src="js/main.js?v=1.9"></script>
 </body>
 
 </html>

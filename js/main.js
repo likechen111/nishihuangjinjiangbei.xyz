@@ -543,7 +543,8 @@ function startTypedLeft() {
     if (topleftTyped) topleftTyped.destroy();
     
     // 根据背景切换文字
-    const isBackground2 = videoSource.src.includes('background2.mp4');
+    const videoEl = document.getElementById('videoSource');
+    const isBackground2 = videoEl ? videoEl.src.includes('background2.mp4') : false;
     const strings = isBackground2 ? ["SABER", "ARTURIA"] : ["MIKU", "HATSUNE"];
 
     topleftTyped = new Typed('.typing-topleft', {
@@ -973,9 +974,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 400);
     });
 
-    // 背景视频切换逻辑
+// 背景视频切换逻辑
     const bgVideo = document.getElementById('bgVideo');
-    const videoSource = document.getElementById('videoSource');
+    window._videoSource = document.getElementById('videoSource');
+    const videoSource = window._videoSource;
     let currentVideo = 'background.mp4';
 
     window.switchBackground = function() {
