@@ -933,10 +933,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         perfTierBtn.addEventListener('click', (e) => {
-            e.preventDefault();
             e.stopPropagation();
-            const isOpen = tierDropdown.classList.toggle('open');
-            if (isOpen) setTimeout(() => document.addEventListener('click', () => tierDropdown.classList.remove('open'), { once: true }), 0);
+            tierDropdown.classList.toggle('open');
+        });
+        document.addEventListener('click', (e) => {
+            if (!tierDropdown.contains(e.target) && e.target !== perfTierBtn) {
+                tierDropdown.classList.remove('open');
+            }
         });
     }
 
