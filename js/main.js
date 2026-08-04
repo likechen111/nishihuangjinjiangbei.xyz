@@ -1072,5 +1072,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-    });
 });
