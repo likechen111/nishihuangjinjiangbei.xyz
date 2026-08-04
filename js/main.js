@@ -557,19 +557,23 @@ function startTypedLeft() {
     });
 }
 
-// 简易 GPU 性能分级：核显/低端 → low，中端 → mid，独显 → high
+// GPU 性能自动分档：software(WARP/无GPU) → low(核显) → mid(中端) → high(独显)
 const perfTier = (() => {
     try {
         const probe = document.createElement('canvas');
         const gl = probe.getContext('webgl2') || probe.getContext('webgl');
-        if (!gl) return 'low';
+        if (!gl) return 'software';
         const dbg = gl.getExtension('WEBGL_debug_renderer_info');
         const renderer = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '') : '';
+        // 软件渲染器 (WARP / Microsoft Basic Render Driver) — 无真实 GPU
+        if (/microsoft basic|swangle|warp|software/i.test(renderer)) return 'software';
+        // 独立显卡
         if (/geforce rtx|radeon rx|radeon (pro )?vega|arc/i.test(renderer)) return 'high';
+        // 核显
         if (/intel|uhd|hd graphics|iris/i.test(renderer)) return 'low';
         return 'mid';
     } catch (e) {
-        return 'low';
+        return 'software';
     }
 })();
 
@@ -578,11 +582,11 @@ let raindropFx = null;
 let isRaindropActive = false;
 let videoPausedForPanel = false;
 
-// 液态玻璃兜底/低端 GPU 统一入口：使用硬件加速 CSS backdrop-filter 毛玻璃
+// 液态玻璃兜底：CSS backdrop-filter 毛玻璃
 function applyCssGlassFallback(panel) {
-    panel.style.backdropFilter = 'blur(10px)';
-    panel.style.webkitBackdropFilter = 'blur(10px)';
-    panel.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+    panel.style.backdropFilter = 'blur(14px)';
+    panel.style.webkitBackdropFilter = 'blur(14px)';
+    panel.style.backgroundColor = 'rgba(0, 0, 0, 0.35)';
     showProductsPanelAnim(panel);
 }
 
@@ -594,38 +598,80 @@ function toggleRaindrop() {
     isRaindropActive = !isRaindropActive;
 
     if (isRaindropActive) {
-        // 清掉可能残留的毛玻璃内联样式，统一使用静态截图 + WebGL 玻璃
+        // 清掉可能残留的内联样式
         productsPanel.style.backdropFilter = 'none';
         productsPanel.style.webkitBackdropFilter = 'none';
         productsPanel.style.backgroundColor = 'transparent';
         productsPanel.style.backgroundImage = 'none';
+        productsPanel.style.filter = 'none';
 
-        // === 低端 GPU：完全跳过 WebGL RaindropFX，仅用 CSS 毛玻璃 ===
-        if (perfTier === "low") {
-            // 仍暂停视频以节省解码资源
-            if (bgVideo && !bgVideo.paused) {
-                bgVideo.pause();
-                videoPausedForPanel = true;
-            }
-            applyCssGlassFallback(productsPanel);
+        // === software 档（WARP / 无 GPU）：静态截图 + CSS 模糊，不跑 WebGL ===
+        if (perfTier === "software") {
+            captureFullScreen().then(backgroundImage => {
+                if (bgVideo && !bgVideo.paused) {
+                    bgVideo.pause();
+                    videoPausedForPanel = true;
+                }
+                if (backgroundImage) {
+                    productsPanel.style.backgroundImage = `url(${backgroundImage})`;
+                    productsPanel.style.backgroundSize = 'cover';
+                    productsPanel.style.backgroundPosition = 'center';
+                }
+                applyCssGlassFallback(productsPanel);
+            }).catch(() => {
+                applyCssGlassFallback(productsPanel);
+            });
             return;
         }
 
-        // === 中/高端 GPU：WebGL 雨滴 + CSS 毛玻璃，但砍掉 WebGL 内部模糊步骤 ===
+        // === low 档（核显）：WebGL 降分辨率 + 1 步模糊 → 轻量液态玻璃 ===
+        if (perfTier === "low") {
+            captureFullScreen().then(backgroundImage => {
+                if (!backgroundImage) {
+                    applyCssGlassFallback(productsPanel);
+                    return;
+                }
+                if (bgVideo && !bgVideo.paused) {
+                    bgVideo.pause();
+                    videoPausedForPanel = true;
+                }
+                canvas.width  = Math.round(window.innerWidth  * 0.5);
+                canvas.height = Math.round(window.innerHeight * 0.5);
+                if (raindropFx) raindropFx.stop();
+                raindropFx = new RaindropFX({
+                    canvas: canvas,
+                    background: backgroundImage,
+                    gravity: 500,
+                    dropletsPerSeconds: 4,
+                    dropletSize: [8, 16],
+                    trailDropDensity: 0,
+                    mist: false,
+                    backgroundBlurSteps: 1,
+                });
+                raindropFx.start();
+                canvas.classList.add('active');
+                productsPanel.style.backdropFilter = 'blur(6px)';
+                productsPanel.style.webkitBackdropFilter = 'blur(6px)';
+                productsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.12)';
+                showProductsPanelAnim(productsPanel);
+            }).catch(() => {
+                applyCssGlassFallback(productsPanel);
+            });
+            return;
+        }
+
+        // === mid / high 档（独显/中端）：WebGL 雨滴 + CSS 毛玻璃 ===
         captureFullScreen().then(backgroundImage => {
             if (!backgroundImage) {
                 applyCssGlassFallback(productsPanel);
                 return;
             }
 
-            // 面板已用静态截图提供背景，暂停视频解码以大幅降低 GPU/CPU 占用
             if (bgVideo && !bgVideo.paused) {
                 bgVideo.pause();
                 videoPausedForPanel = true;
             }
 
-
-            // 降低 WebGL 渲染分辨率以减轻 GPU 负担
             const resScale = perfTier === "mid" ? 0.65 : 0.85;
             canvas.width  = Math.round(window.innerWidth  * resScale);
             canvas.height = Math.round(window.innerHeight * resScale);
@@ -635,17 +681,16 @@ function toggleRaindrop() {
                 canvas: canvas,
                 background: backgroundImage,
                 gravity: perfTier === "mid" ? 650 : 800,
-                dropletsPerSeconds: perfTier === "mid" ? 8 : 16,
+                dropletsPerSeconds: perfTier === "mid" ? 8 : 14,
                 dropletSize: [8, 20],
                 trailDropDensity: perfTier === "mid" ? 0.02 : 0.06,
-                mist: false,                    // 全部关闭雾效，节省大量 GPU 着色
-                backgroundBlurSteps: 0,          // 全部去掉 WebGL 内部模糊，用下面 CSS 替代
+                mist: false,
+                backgroundBlurSteps: 1,
             });
 
             raindropFx.start();
             canvas.classList.add('active');
 
-            // 用 CSS backdrop-filter 提供液态玻璃模糊效果（浏览器 GPU 合成器硬件加速，远轻于 WebGL 逐帧模糊）
             productsPanel.style.backdropFilter = 'blur(8px)';
             productsPanel.style.webkitBackdropFilter = 'blur(8px)';
             productsPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.18)';
