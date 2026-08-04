@@ -914,10 +914,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 渲染档位手动选择器（自定义液态玻璃下拉）
     const perfTierBtn = document.getElementById('perfTierBtn');
     const tierDropdown = document.getElementById('tierDropdown');
-    const tierLabelMap = { '': '自动', 'software': '流畅', 'low': '省电', 'mid': '均衡', 'high': '画质' };
+    const tierLabelMap = { '': 'AUTO', 'software': 'SMOOTH', 'low': 'ECO', 'mid': 'BALANCED', 'high': 'QUALITY' };
     if (perfTierBtn && tierDropdown) {
         const savedTier = localStorage.getItem('perfTier_override') || '';
-        perfTierBtn.textContent = tierLabelMap[savedTier] || '自动';
+        perfTierBtn.textContent = tierLabelMap[savedTier] || 'AUTO';
         document.querySelectorAll('.tier-option').forEach(opt => {
             if (opt.dataset.val === savedTier) opt.classList.add('active');
             opt.addEventListener('click', (e) => {
@@ -925,7 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const val = opt.dataset.val;
                 if (val) localStorage.setItem('perfTier_override', val);
                 else localStorage.removeItem('perfTier_override');
-                perfTierBtn.textContent = tierLabelMap[val] || '自动';
+                perfTierBtn.textContent = tierLabelMap[val] || 'AUTO';
                 document.querySelectorAll('.tier-option').forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
                 tierDropdown.classList.remove('open');
