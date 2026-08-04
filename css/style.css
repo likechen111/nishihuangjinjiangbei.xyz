@@ -210,7 +210,7 @@ body {
 }
 
 /* 导航栏 - 右上角 */
-./* 渲染档位选择器 — 与 nav-link 同风格 */
+/* 渲染档位选择器 — 与 nav-link 同风格 */
 .perf-tier-select {
     font-family: 'General Sans', 'Poppins', sans-serif;
     font-size: 12px;
@@ -227,7 +227,7 @@ body {
         0 0 2px rgba(0, 0, 0, 0.15),
         0 0 4px rgba(0, 0, 0, 0.1),
         0 0 6px rgba(0, 0, 0, 0.08);
-    letter-spacing: 0;
+    letter-spacing: normal;
     padding: 0;
 }
 .perf-tier-select:hover {
@@ -239,7 +239,7 @@ body {
     font-size: 11px;
 }
 
-navbar-right {`r`n  will-change: transform, opacity;
+.navbar-right {`r`n  will-change: transform, opacity;
     position: fixed;
     top: 20px;
     right: 50px;
