@@ -917,7 +917,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tierLabelMap = { '': 'AUTO', 'software': 'SMOOTH', 'low': 'ECO', 'mid': 'BALANCED', 'high': 'QUALITY' };
     if (perfTierBtn && tierDropdown) {
         const savedTier = localStorage.getItem('perfTier_override') || '';
-        perfTierBtn.textContent = tierLabelMap[savedTier] || 'AUTO';
+        perfTierBtn.querySelector('.nav-tier-label').textContent = tierLabelMap[savedTier] || 'AUTO';
         document.querySelectorAll('.tier-option').forEach(opt => {
             if (opt.dataset.val === savedTier) opt.classList.add('active');
             opt.addEventListener('click', (e) => {
@@ -925,7 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const val = opt.dataset.val;
                 if (val) localStorage.setItem('perfTier_override', val);
                 else localStorage.removeItem('perfTier_override');
-                perfTierBtn.textContent = tierLabelMap[val] || 'AUTO';
+                perfTierBtn.querySelector('.nav-tier-label').textContent = tierLabelMap[val] || 'AUTO';
                 document.querySelectorAll('.tier-option').forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
                 tierDropdown.classList.remove('open');
