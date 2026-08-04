@@ -933,6 +933,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         perfTierBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
             const isOpen = tierDropdown.classList.toggle('open');
             if (isOpen) setTimeout(() => document.addEventListener('click', () => tierDropdown.classList.remove('open'), { once: true }), 0);
