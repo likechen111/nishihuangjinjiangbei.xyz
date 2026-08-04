@@ -587,6 +587,7 @@ function getPerfTier() {
 // 雨滴效果全局变量
 let raindropFx = null;
 let isRaindropActive = false;
+let videoPausedForPanel = false;
 
 // 液态玻璃兜底：CSS backdrop-filter 毛玻璃
 function applyCssGlassFallback(panel) {
@@ -615,6 +616,10 @@ function toggleRaindrop() {
         // === software 档（WARP / 无 GPU）：静态截图 + CSS 模糊，不跑 WebGL ===
         if (tier === "software") {
             captureFullScreen().then(backgroundImage => {
+                if (bgVideo && !bgVideo.paused) {
+                    bgVideo.pause();
+                    videoPausedForPanel = true;
+                }
                 if (backgroundImage) {
                     productsPanel.style.backgroundImage = `url(${backgroundImage})`;
                     productsPanel.style.backgroundSize = 'cover';
@@ -633,6 +638,10 @@ function toggleRaindrop() {
                 if (!backgroundImage) {
                     applyCssGlassFallback(productsPanel);
                     return;
+                }
+                if (bgVideo && !bgVideo.paused) {
+                    bgVideo.pause();
+                    videoPausedForPanel = true;
                 }
                 canvas.width  = Math.round(window.innerWidth  * 0.5);
                 canvas.height = Math.round(window.innerHeight * 0.5);
@@ -662,6 +671,11 @@ function toggleRaindrop() {
             if (!backgroundImage) {
                 applyCssGlassFallback(productsPanel);
                 return;
+            }
+
+            if (bgVideo && !bgVideo.paused) {
+                bgVideo.pause();
+                videoPausedForPanel = true;
             }
 
             const resScale = tier === "mid" ? 0.65 : 0.85;
@@ -696,6 +710,12 @@ function toggleRaindrop() {
         if (raindropFx) {
             raindropFx.stop();
             raindropFx = null;
+        }
+
+        // 恢复被面板暂停的背景视频
+        if (videoPausedForPanel && bgVideo) {
+            bgVideo.play().catch(() => {});
+            videoPausedForPanel = false;
         }
 
         productsPanel.style.backdropFilter = 'none';
