@@ -58,13 +58,16 @@
             <a href="#prologue" class="nav-link">Prologue</a>
             <a href="#about" class="nav-link">About</a>
             <a href="#contact" class="nav-link">Contact</a>
-            <select class="perf-tier-select" id="perfTierSelect" title="渲染质量">
-                <option value="">自动</option>
-                <option value="software">流畅</option>
-                <option value="low">省电</option>
-                <option value="mid">均衡</option>
-                <option value="high">画质</option>
-            </select>
+            <div class="nav-tier-wrap">
+                <a class="nav-link nav-tier-btn" id="perfTierBtn">自动</a>
+                <div class="tier-dropdown" id="tierDropdown">
+                    <div class="tier-option" data-val="">自动检测</div>
+                    <div class="tier-option" data-val="software">流畅</div>
+                    <div class="tier-option" data-val="low">省电</div>
+                    <div class="tier-option" data-val="mid">均衡</div>
+                    <div class="tier-option" data-val="high">画质</div>
+                </div>
+            </div>
         </div>
 
         <button class="audio-indicator" id="audioIndicator">

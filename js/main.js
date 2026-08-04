@@ -911,27 +911,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 渲染档位手动选择器
-    const perfTierSelect = document.getElementById('perfTierSelect');
-    if (perfTierSelect) {
-        const savedTier = localStorage.getItem('perfTier_override');
-        if (savedTier) perfTierSelect.value = savedTier;
-        perfTierSelect.addEventListener('change', () => {
-            const val = perfTierSelect.value;
-            if (val) {
-                localStorage.setItem('perfTier_override', val);
-            } else {
-                localStorage.removeItem('perfTier_override');
-            }
-            // 面板打开中则关闭再重开以即时生效
-            if (isRaindropActive) {
-                toggleRaindrop();
-                setTimeout(() => toggleRaindrop(), 200);
-            }
+    // 渲染档位手动选择器（自定义液态玻璃下拉）
+    const perfTierBtn = document.getElementById('perfTierBtn');
+    const tierDropdown = document.getElementById('tierDropdown');
+    const tierLabelMap = { '': '自动', 'software': '流畅', 'low': '省电', 'mid': '均衡', 'high': '画质' };
+    if (perfTierBtn && tierDropdown) {
+        const savedTier = localStorage.getItem('perfTier_override') || '';
+        perfTierBtn.textContent = tierLabelMap[savedTier] || '自动';
+        document.querySelectorAll('.tier-option').forEach(opt => {
+            if (opt.dataset.val === savedTier) opt.classList.add('active');
+            opt.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const val = opt.dataset.val;
+                if (val) localStorage.setItem('perfTier_override', val);
+                else localStorage.removeItem('perfTier_override');
+                perfTierBtn.textContent = tierLabelMap[val] || '自动';
+                document.querySelectorAll('.tier-option').forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                tierDropdown.classList.remove('open');
+                if (isRaindropActive) { toggleRaindrop(); setTimeout(() => toggleRaindrop(), 200); }
+            });
         });
+        perfTierBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            tierDropdown.classList.toggle('open');
+        });
+        document.addEventListener('click', () => tierDropdown.classList.remove('open'));
     }
 
-        // Products 按钮点击效果 - 切换雨滴
+            // Products 按钮点击效果 - 切换雨滴
     const productsBtn = document.getElementById('productsBtn');
     const btnText1 = document.getElementById('btnText1');
     const btnText2 = document.getElementById('btnText2');
