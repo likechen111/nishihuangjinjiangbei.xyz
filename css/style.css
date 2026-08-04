@@ -210,7 +210,37 @@ body {
 }
 
 /* 导航栏 - 右上角 */
-.navbar-right {`r`n  will-change: transform, opacity;
+./* 渲染档位选择器 */
+.perf-tier-select {
+    background: rgba(223, 223, 242, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.85);
+    font-family: 'General Sans', 'Poppins', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 6px 12px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    margin-right: 10px;
+}
+.perf-tier-select:hover {
+    background: rgba(223, 223, 242, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+.perf-tier-select option {
+    background: #111122;
+    color: #fff;
+    font-size: 11px;
+}
+
+navbar-right {`r`n  will-change: transform, opacity;
     position: fixed;
     top: 20px;
     right: 50px;

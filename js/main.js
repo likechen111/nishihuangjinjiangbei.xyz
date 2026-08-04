@@ -558,7 +558,7 @@ function startTypedLeft() {
 }
 
 // GPU 性能自动分档：software(WARP/无GPU) → low(核显) → mid(中端) → high(独显)
-const perfTier = (() => {
+const autoTier = (() => {
     try {
         const probe = document.createElement('canvas');
         const gl = probe.getContext('webgl2') || probe.getContext('webgl');
@@ -576,6 +576,12 @@ const perfTier = (() => {
         return 'software';
     }
 })();
+
+function getPerfTier() {
+    const override = localStorage.getItem('perfTier_override');
+    if (override) return override;
+    return autoTier;
+}
 
 // 雨滴效果全局变量
 let raindropFx = null;
@@ -596,6 +602,7 @@ function toggleRaindrop() {
     const productsPanel = document.getElementById('productsPanel');
     const bgVideo = document.getElementById('bgVideo');
     isRaindropActive = !isRaindropActive;
+    const tier = getPerfTier();
 
     if (isRaindropActive) {
         // 清掉可能残留的内联样式
@@ -606,7 +613,7 @@ function toggleRaindrop() {
         productsPanel.style.filter = 'none';
 
         // === software 档（WARP / 无 GPU）：静态截图 + CSS 模糊，不跑 WebGL ===
-        if (perfTier === "software") {
+        if (tier === "software") {
             captureFullScreen().then(backgroundImage => {
                 if (bgVideo && !bgVideo.paused) {
                     bgVideo.pause();
@@ -625,7 +632,7 @@ function toggleRaindrop() {
         }
 
         // === low 档（核显）：WebGL 降分辨率 + 1 步模糊 → 轻量液态玻璃 ===
-        if (perfTier === "low") {
+        if (tier === "low") {
             captureFullScreen().then(backgroundImage => {
                 if (!backgroundImage) {
                     applyCssGlassFallback(productsPanel);
@@ -672,7 +679,7 @@ function toggleRaindrop() {
                 videoPausedForPanel = true;
             }
 
-            const resScale = perfTier === "mid" ? 0.65 : 0.85;
+            const resScale = tier === "mid" ? 0.65 : 0.85;
             canvas.width  = Math.round(window.innerWidth  * resScale);
             canvas.height = Math.round(window.innerHeight * resScale);
 
@@ -680,10 +687,10 @@ function toggleRaindrop() {
             raindropFx = new RaindropFX({
                 canvas: canvas,
                 background: backgroundImage,
-                gravity: perfTier === "mid" ? 650 : 800,
-                dropletsPerSeconds: perfTier === "mid" ? 8 : 14,
+                gravity: tier === "mid" ? 650 : 800,
+                dropletsPerSeconds: tier === "mid" ? 8 : 14,
                 dropletSize: [8, 20],
-                trailDropDensity: perfTier === "mid" ? 0.02 : 0.06,
+                trailDropDensity: tier === "mid" ? 0.02 : 0.06,
                 mist: false,
                 backgroundBlurSteps: 1,
             });
@@ -908,7 +915,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Products 按钮点击效果 - 切换雨滴
+    // 渲染档位手动选择器
+    const perfTierSelect = document.getElementById('perfTierSelect');
+    if (perfTierSelect) {
+        const savedTier = localStorage.getItem('perfTier_override');
+        if (savedTier) perfTierSelect.value = savedTier;
+        perfTierSelect.addEventListener('change', () => {
+            const val = perfTierSelect.value;
+            if (val) {
+                localStorage.setItem('perfTier_override', val);
+            } else {
+                localStorage.removeItem('perfTier_override');
+            }
+            // 面板打开中则关闭再重开以即时生效
+            if (isRaindropActive) {
+                toggleRaindrop();
+                setTimeout(() => toggleRaindrop(), 200);
+            }
+        });
+    }
+
+        // Products 按钮点击效果 - 切换雨滴
     const productsBtn = document.getElementById('productsBtn');
     const btnText1 = document.getElementById('btnText1');
     const btnText2 = document.getElementById('btnText2');
