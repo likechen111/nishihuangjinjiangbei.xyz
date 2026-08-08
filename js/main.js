@@ -1047,8 +1047,8 @@ document.addEventListener('DOMContentLoaded', () => {
         link.addEventListener('click', (e) => {
             const target = link.getAttribute('href');
             if (!target) return;  // tier button has no href, let its own handler manage
-            e.preventDefault();
             if (target.startsWith('#')) {
+                e.preventDefault();
                 const el = document.querySelector(target);
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
             }
