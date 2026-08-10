@@ -609,7 +609,7 @@ body {
 
 .products-container {
     text-align: center;
-    max-width: 900px;
+    max-width: 1040px;
     width: 90%;
 }
 
@@ -663,14 +663,15 @@ body {
 .product-card {
     position: relative;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    padding: 36px 28px 28px;
-    width: 260px;
-    background: rgba(20, 20, 20, 0.4);
+    gap: 16px;
+    padding: 20px 22px 20px 24px;
+    width: 300px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 60%, rgba(20, 20, 20, 0.35) 100%);
     /* 稍微加深背景，代替模糊效果 */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
     text-decoration: none;
     color: #ffffff;
     cursor: pointer;
@@ -678,6 +679,7 @@ body {
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
         border-color 0.4s ease,
         box-shadow 0.4s ease,
+        background 0.4s ease,
         opacity 0.6s ease;
     /* 初始透明度设为 0，由 GSAP 渐显。transform 保持 0，方便 CSS :hover 准确识别基准位 */
     transform: translateY(0);
@@ -692,9 +694,22 @@ body {
 .product-card:hover {
     transform: translateY(-8px);
     border-color: rgba(255, 255, 255, 0.25);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 60%, rgba(20, 20, 20, 0.4) 100%);
     box-shadow:
         0 20px 60px rgba(0, 0, 0, 0.3),
         0 0 40px rgba(223, 223, 242, 0.1);
+}
+
+/* 卡片顶部高光线 */
+.product-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 16px;
+    right: 16px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    pointer-events: none;
 }
 
 /* 卡片光晕背景 */
@@ -709,13 +724,13 @@ body {
     pointer-events: none;
 }
 
-/* Grok2API - 蓝紫色调 */
+/* Grok2API - 清新天蓝 */
 #cardGrok .product-card-glow {
-    background: radial-gradient(circle at 50% 50%, rgba(120, 130, 255, 0.15), transparent 50%);
+    background: radial-gradient(circle at 50% 50%, rgba(125, 211, 252, 0.18), transparent 50%);
 }
 
 #cardGrok:hover {
-    border-color: rgba(120, 130, 255, 0.3);
+    border-color: rgba(125, 211, 252, 0.35);
 }
 
 #cardGrok:hover .product-card-glow {
@@ -723,16 +738,16 @@ body {
 }
 
 #cardGrok .product-icon {
-    color: #8b8eff;
+    color: #7dd3fc;
 }
 
-/* GCLI2API - 青绿色调 */
+/* GCLI2API - 薄荷绿 */
 #cardGcli .product-card-glow {
-    background: radial-gradient(circle at 50% 50%, rgba(80, 200, 200, 0.15), transparent 50%);
+    background: radial-gradient(circle at 50% 50%, rgba(110, 231, 183, 0.18), transparent 50%);
 }
 
 #cardGcli:hover {
-    border-color: rgba(80, 200, 200, 0.3);
+    border-color: rgba(110, 231, 183, 0.35);
 }
 
 #cardGcli:hover .product-card-glow {
@@ -740,16 +755,16 @@ body {
 }
 
 #cardGcli .product-icon {
-    color: #5ecfcf;
+    color: #6ee7b7;
 }
 
-/* CLI Proxy API - 淡紫粉色调 */
+/* CLI Proxy API - 淡薰衣草紫 */
 #cardProxy .product-card-glow {
-    background: radial-gradient(circle at 50% 50%, rgba(200, 130, 255, 0.15), transparent 50%);
+    background: radial-gradient(circle at 50% 50%, rgba(196, 181, 253, 0.18), transparent 50%);
 }
 
 #cardProxy:hover {
-    border-color: rgba(200, 130, 255, 0.3);
+    border-color: rgba(196, 181, 253, 0.35);
 }
 
 #cardProxy:hover .product-card-glow {
@@ -757,38 +772,52 @@ body {
 }
 
 #cardProxy .product-icon {
-    color: #c88aff;
+    color: #c4b5fd;
 }
 
 /* 图标区域 */
 .product-icon {
-    width: 64px;
-    height: 64px;
-    margin-bottom: 20px;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    flex: none;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    background: color-mix(in srgb, currentColor 12%, transparent);
+    border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+    margin: 0;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        background 0.3s ease,
+        border-color 0.3s ease;
 }
 
 .product-card:hover .product-icon {
-    transform: scale(1.1);
+    transform: scale(1.08);
+    background: color-mix(in srgb, currentColor 18%, transparent);
+    border-color: color-mix(in srgb, currentColor 45%, transparent);
 }
 
 .product-icon svg {
-    width: 100%;
-    height: 100%;
+    width: 26px;
+    height: 26px;
 }
 
 /* 产品信息 */
 .product-info {
-    text-align: center;
-    margin-bottom: 16px;
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    margin: 0;
 }
 
 .product-name {
     font-family: 'General Sans', 'Poppins', sans-serif;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 1px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     color: #ffffff;
 }
 
@@ -798,11 +827,12 @@ body {
     font-weight: 400;
     color: rgba(255, 255, 255, 0.45);
     letter-spacing: 0.5px;
-    line-height: 1.4;
+    line-height: 1.45;
 }
 
 /* 箭头指示器 */
 .product-arrow {
+    flex: none;
     width: 32px;
     height: 32px;
     display: flex;
@@ -812,7 +842,8 @@ body {
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
-    margin-top: auto;
+    margin-top: 0;
+    margin-left: auto;
 }
 
 .product-arrow svg {
@@ -842,6 +873,24 @@ body {
 
     .product-card {
         width: 280px;
+        padding: 18px;
+        gap: 12px;
+    }
+
+    .product-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+    }
+
+    .product-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .product-arrow {
+        width: 28px;
+        height: 28px;
     }
 
     .speech-bubble {
