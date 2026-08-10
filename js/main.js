@@ -40,6 +40,292 @@ window.addEventListener('load', async () => {
 // 延迟 Promise 工具函数
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+// =================================================
+// 看板娘台词池与气泡系统
+// =================================================
+const SPEECH = {
+    miku: {
+        timeGreetings: [
+            { min: 5, max: 10, text: '早上好！今天也要元气满满！' },
+            { min: 11, max: 13, text: '午安～记得好好吃饭哦。' },
+            { min: 14, max: 17, text: '下午好，一起加油吧！' },
+            { min: 18, max: 22, text: '晚上好～适度休息也很重要。' },
+            { min: 23, max: 4, text: '夜深了，早点睡吧……' }
+        ],
+        idle: [
+            '葱～葱～',
+            '今天也要元气满满！',
+            '看着我做什么呀？',
+            '要不要一起去唱歌？',
+            '你的世界，交给我来点亮！'
+        ],
+        tickle: [
+            '呜哇！别挠啦～',
+            '哈哈哈哈，认输啦！',
+            '你、你怎么这样！'
+        ],
+        hidden: [
+            '嘘——被你发现隐藏彩蛋了。',
+            '第十次见面，已经是好朋友了呢。',
+            '世界的尽头，也有一根大葱在等我。'
+        ],
+        evolution: '葱之力已就位！接下来就交给我吧～'
+    },
+    saber: {
+        timeGreetings: [
+            { min: 5, max: 10, text: '天亮了，契约依旧有效。' },
+            { min: 11, max: 13, text: '午时已至，稍作休整。' },
+            { min: 14, max: 17, text: '继续前行，吾等之路尚远。' },
+            { min: 18, max: 22, text: '夜幕降临，余仍守护于此。' },
+            { min: 23, max: 4, text: '夜深了，御主请安歇。' }
+        ],
+        idle: [
+            '吾之剑，即汝之盾。',
+            '契约既定，余必守护到底。',
+            '无需畏惧，前方有我。',
+            '圣剑所指，皆为坦途。',
+            '本王之名，乃阿尔托莉雅。'
+        ],
+        tickle: [
+            '放肆！竟敢如此无礼。',
+            '住手！这是对王者的亵渎！',
+            '哼……仅此一次。'
+        ],
+        hidden: [
+            '能抵达此处，你已证明了自己的资格。',
+            '王者的旅途，从不是孤身一人。',
+            '余认可你了，御主。'
+        ],
+        evolution: 'Excalibur，誓约之剑，斩断时空！'
+    },
+    announcement: '新服务上线了，打开 PRODUCTS 看看吧！'
+};
+
+const bubbleState = {
+    miku: {
+        initialized: false,
+        el: null,
+        mascot: null,
+        textEl: null,
+        busy: false,
+        dragMoved: false,
+        clickCount: 0,
+        lastClickAt: 0,
+        typeTimer: null,
+        holdTimer: null,
+        fadeTimer: null,
+        chatTimer: null,
+        nextChatAt: 0
+    },
+    saber: {
+        initialized: false,
+        el: null,
+        mascot: null,
+        textEl: null,
+        busy: false,
+        dragMoved: false,
+        clickCount: 0,
+        lastClickAt: 0,
+        typeTimer: null,
+        holdTimer: null,
+        fadeTimer: null,
+        chatTimer: null,
+        nextChatAt: 0
+    }
+};
+
+function pickRandom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getTimeGreeting(pool) {
+    const hour = new Date().getHours();
+    const matched = pool.find(g => {
+        if (g.min <= g.max) return hour >= g.min && hour <= g.max;
+        return hour >= g.min || hour <= g.max;
+    });
+    return matched ? matched.text : pool[0].text;
+}
+
+function isProductsOpen() {
+    const panel = document.getElementById('productsPanel');
+    return panel ? panel.classList.contains('active') : false;
+}
+
+function clearBubbleTimers(state) {
+    if (state.typeTimer) clearInterval(state.typeTimer);
+    if (state.holdTimer) clearTimeout(state.holdTimer);
+    state.typeTimer = null;
+    state.holdTimer = null;
+}
+
+function hideBubble(key, immediate = false) {
+    const state = bubbleState[key];
+    if (!state || !state.el) return;
+    clearBubbleTimers(state);
+    if (state.fadeTimer) {
+        clearTimeout(state.fadeTimer);
+        state.fadeTimer = null;
+    }
+    state.el.classList.remove('visible');
+    if (immediate) {
+        state.el.classList.remove('hiding');
+        state.busy = false;
+        return;
+    }
+    state.el.classList.add('hiding');
+    state.fadeTimer = setTimeout(() => {
+        state.el.classList.remove('hiding');
+        state.busy = false;
+        state.fadeTimer = null;
+    }, 280);
+}
+
+function updateBubbleAlign(key) {
+    const state = bubbleState[key];
+    if (!state || !state.el || !state.mascot) return;
+    const rect = state.mascot.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    state.el.classList.toggle('align-right', centerX > window.innerWidth / 2);
+}
+
+function showBubble(key, text, options = {}) {
+    const state = bubbleState[key];
+    if (!state || !state.el || !state.textEl) return false;
+    if (!options.force && state.busy) return false;
+    if (isProductsOpen()) return false;
+
+    clearBubbleTimers(state);
+    if (state.fadeTimer) {
+        clearTimeout(state.fadeTimer);
+        state.fadeTimer = null;
+    }
+
+    state.busy = true;
+    state.el.classList.remove('hiding');
+    state.el.classList.add('visible');
+    updateBubbleAlign(key);
+    state.textEl.textContent = '';
+
+    const chars = Array.from(String(text));
+    const typeSpeed = options.typeSpeed || 45;
+    if (chars.length === 0) {
+        state.holdTimer = setTimeout(() => hideBubble(key), options.hold || 3200);
+        return true;
+    }
+
+    let index = 0;
+    state.typeTimer = setInterval(() => {
+        index += 1;
+        state.textEl.textContent = chars.slice(0, index).join('');
+        if (index >= chars.length) {
+            clearInterval(state.typeTimer);
+            state.typeTimer = null;
+            state.holdTimer = setTimeout(() => hideBubble(key), options.hold || 3200);
+        }
+    }, typeSpeed);
+    return true;
+}
+
+function pickChatText(key) {
+    const lines = SPEECH[key];
+    if (!lines) return '';
+    if (Math.random() < 0.25) return getTimeGreeting(lines.timeGreetings);
+    return pickRandom(lines.idle);
+}
+
+function scheduleRandomChat(key) {
+    const state = bubbleState[key];
+    if (!state || state.chatTimer) return;
+    state.nextChatAt = Date.now() + 30000 + Math.floor(Math.random() * 30000);
+    const loop = () => {
+        state.chatTimer = setTimeout(() => {
+            if (!isProductsOpen() && !state.busy && Date.now() >= state.nextChatAt) {
+                showBubble(key, pickChatText(key), { hold: 3600 });
+                state.nextChatAt = Date.now() + 30000 + Math.floor(Math.random() * 30000);
+            }
+            loop();
+        }, 3000);
+    };
+    loop();
+}
+
+function handleMascotClick(key) {
+    const state = bubbleState[key];
+    const lines = SPEECH[key];
+    if (!state || !lines) return;
+
+    const now = Date.now();
+    if (now - state.lastClickAt > 900) state.clickCount = 0;
+    state.clickCount += 1;
+    state.lastClickAt = now;
+
+    if (state.clickCount === 10) {
+        showBubble(key, pickRandom(lines.hidden), { force: true, hold: 4000 });
+        return;
+    }
+    if (state.clickCount % 3 === 0) {
+        showBubble(key, pickRandom(lines.tickle), { force: true, hold: 3000 });
+        return;
+    }
+    if (state.busy) {
+        hideBubble(key, true);
+        return;
+    }
+    showBubble(key, pickChatText(key), { hold: 3200 });
+}
+
+function initSpeechBubbles(key) {
+    const state = bubbleState[key];
+    if (!state || state.initialized) return;
+    const isMiku = key === 'miku';
+    state.el = document.getElementById(isMiku ? 'mikuBubble' : 'saberBubble');
+    state.mascot = document.getElementById(isMiku ? 'mikuMascot' : 'saberMascot');
+    if (!state.el || !state.mascot) return;
+    state.textEl = state.el.querySelector('.speech-text');
+    if (!state.textEl) return;
+    state.initialized = true;
+
+    // 气泡上按下时不要触发 mascot 的拖拽/换图逻辑，否则 mouseup 会被指针捕获重定向到 mascot
+    state.el.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+    });
+
+    state.el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideBubble(key, true);
+    });
+
+    state.mascot.addEventListener('click', () => {
+        if (state.dragMoved) return;
+        handleMascotClick(key);
+    });
+
+    scheduleRandomChat(key);
+}
+
+let announcementShownThisLoad = false;
+const ANNOUNCEMENT_STORAGE_KEY = 'mascot_announcement_seen_v1';
+function maybeShowAnnouncement() {
+    if (announcementShownThisLoad) return;
+    announcementShownThisLoad = true;
+    const isFirstVisit = !localStorage.getItem(ANNOUNCEMENT_STORAGE_KEY);
+    const tryShow = () => {
+        if (isProductsOpen()) {
+            setTimeout(tryShow, 5000);
+            return;
+        }
+        const shown = showBubble('miku', SPEECH.announcement, { force: true, hold: 4200, typeSpeed: 50 });
+        if (shown) localStorage.setItem(ANNOUNCEMENT_STORAGE_KEY, '1');
+    };
+    setTimeout(tryShow, isFirstVisit ? 4000 : 5000);
+}
+
+function hideAllSpeechBubbles() {
+    hideBubble('miku', true);
+    hideBubble('saber', true);
+}
+
 async function playIntroAnimation() {
     const eyeLoader = document.getElementById('eyeLoader');
     const eyelidTop = document.getElementById('eyelidTop');
@@ -117,6 +403,7 @@ async function playIntroAnimation() {
         ease: 'back.out(1.7)', force3D: true,
         onComplete: () => {
             initMikuLogic();
+            maybeShowAnnouncement();
             // 动画结束后，彻底隐藏 loader 节点以防影响页面点击
             eyeLoader.style.display = 'none';
         }
@@ -129,6 +416,8 @@ function initMikuLogic() {
     const mikuMascot = document.getElementById('mikuMascot');
     const mikuImg = document.getElementById('mikuImg');
     if (!mikuMascot || !mikuImg) return;
+
+    initSpeechBubbles('miku');
 
     // 优先使用低分辨素材（如果是网络环境差或大文件未加载）
     // 逻辑：先设置 src 为 lowres 版本，等高分辨版本加载完再替换
@@ -189,6 +478,7 @@ function initMikuLogic() {
     startBlinking();
 
     mikuMascot.addEventListener('pointerdown', (e) => {
+        bubbleState.miku.dragMoved = false;
         isDragging = true;
         mouthState = 'OPEN';
         blinkCount = 0;
@@ -209,6 +499,8 @@ function initMikuLogic() {
         mikuMascot.style.left = `${initialLeft + dx}px`;
         mikuMascot.style.top = `${initialTop + dy}px`;
         mikuMascot.style.bottom = 'auto'; // 覆盖初始 bottom 固定定位
+        bubbleState.miku.dragMoved = true;
+        updateBubbleAlign('miku');
     });
 
     window.addEventListener('pointerup', () => {
@@ -278,6 +570,7 @@ function initMikuLogic() {
         
         isEvolving = true;
         clearTimeout(blinkTimer); // 强制停止眨眼定时器
+        showBubble('miku', SPEECH.miku.evolution, { force: true, hold: 4200 });
 
         // 1. 物品静止并消失
         mikuLeek.style.display = 'none';
@@ -306,6 +599,8 @@ function initMikuLogic() {
     // 提供给外部的重置函数（切回 Miku 宇宙时调用）
     window.resetMikuState = function() {
         if (!mikuMascot || !mikuLeek) return;
+        hideBubble('miku', true);
+        bubbleState.miku.nextChatAt = Date.now() + 30000 + Math.floor(Math.random() * 30000);
         isEvolving = false;
         mikuImg.src = assets.idleOpen;
         
@@ -351,6 +646,8 @@ function initSaberLogic() {
     const saberImg = document.getElementById('saberImg');
     const saberSword = document.getElementById('saberSword');
     
+    initSpeechBubbles('saber');
+
     let isEvolvingSaber = false;
     let sStartX, sStartY, sInitialLeft, sInitialTop;
     let isDraggingSword = false;
@@ -361,6 +658,8 @@ function initSaberLogic() {
     // Saber 入场重置函数
     window.resetSaberState = function() {
         if (!saberSword || !saberMascot) return;
+        hideBubble('saber', true);
+        bubbleState.saber.nextChatAt = Date.now() + 30000 + Math.floor(Math.random() * 30000);
         isEvolvingSaber = false;
         saberImg.src = 'assets/image/saber.png';
         
@@ -392,6 +691,7 @@ function initSaberLogic() {
     // --- Saber Mover 交互 ---
     saberMascot.addEventListener('pointerdown', (e) => {
         if (isEvolvingSaber) return;
+        bubbleState.saber.dragMoved = false;
         isDraggingSaber = true;
         saberImg.src = 'assets/image/saber_lifted.png'; // "saber被提起来"
         saberImg.style.animation = 'none';
@@ -412,6 +712,8 @@ function initSaberLogic() {
         saberMascot.style.left = `${sMascotInitialLeft + dx}px`;
         saberMascot.style.top = `${sMascotInitialTop + dy}px`;
         saberMascot.style.bottom = 'auto'; // 解除底部约束
+        bubbleState.saber.dragMoved = true;
+        updateBubbleAlign('saber');
     });
 
     window.addEventListener('pointerup', () => {
@@ -466,6 +768,7 @@ function initSaberLogic() {
     function triggerSaberEvolution() {
         if (saberSword.style.display === 'none' || isEvolvingSaber) return;
         isEvolvingSaber = true;
+        showBubble('saber', SPEECH.saber.evolution, { force: true, hold: 4200 });
 
         saberSword.style.display = 'none';
         saberImg.src = 'assets/image/saber_excalibur.png'; // Saber + 大剑形态
@@ -605,6 +908,7 @@ function toggleRaindrop() {
     const tier = getPerfTier();
 
     if (isRaindropActive) {
+        hideAllSpeechBubbles();
         // 清掉可能残留的内联样式
         productsPanel.style.backdropFilter = 'none';
         productsPanel.style.webkitBackdropFilter = 'none';

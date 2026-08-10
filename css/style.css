@@ -1006,6 +1006,7 @@ body {
     position: absolute;
     bottom: calc(100% + 18px);
     left: 0;
+    display: none;
     max-width: min(260px, calc(100vw - 32px));
     min-width: 96px;
     padding: 10px 14px;
@@ -1024,9 +1025,8 @@ body {
     word-break: break-word;
     text-align: left;
     opacity: 0;
-    visibility: hidden;
     transform: translateY(8px);
-    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+    will-change: opacity, transform;
     z-index: 1002;
     pointer-events: auto;
     user-select: none;
@@ -1035,9 +1035,38 @@ body {
 }
 
 .speech-bubble.visible {
+    display: block;
     opacity: 1;
-    visibility: visible;
     transform: translateY(0);
+    animation: speech-bubble-in 0.25s ease forwards;
+}
+
+.speech-bubble.hiding {
+    display: block;
+    animation: speech-bubble-out 0.25s ease forwards;
+    pointer-events: none;
+}
+
+@keyframes speech-bubble-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes speech-bubble-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(8px);
+    }
 }
 
 /* 气泡小三角（指向看板娘） */
