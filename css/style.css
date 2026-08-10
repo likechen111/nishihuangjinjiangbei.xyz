@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.cdnfonts.com/css/general-sans');
+@import url('https://fonts.cdnfonts.com/css/general-sans');
 
 * {
     margin: 0;
@@ -17,7 +17,7 @@ body {
 }
 
 /* 视频背景 */
-.video-background {`r`n  transform: translateZ(0);`r`n  will-change: transform;
+.video-background {  transform: translateZ(0);  will-change: transform;
     position: fixed;
     top: 0;
     left: 0;
@@ -27,7 +27,7 @@ body {
     z-index: -2;
 }
 
-.video-background video {`r`n  transform: translateZ(0);
+.video-background video {  transform: translateZ(0);
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -39,7 +39,7 @@ body {
 }
 
 /* 打字机特效 - 右下角（时间） */
-.typing-container {`r`n  will-change: transform, opacity;
+.typing-container {  will-change: transform, opacity;
     position: fixed;
     bottom: 50px;
     right: 50px;
@@ -47,7 +47,7 @@ body {
 }
 
 /* 打字机特效 - 左上角 */
-.typing-topleft-container {`r`n  will-change: transform, opacity;
+.typing-topleft-container {  will-change: transform, opacity;
     position: fixed;
     top: 50px;
     left: 50px;
@@ -80,7 +80,7 @@ body {
 }
 
 /* 雨滴效果 Canvas */
-.raindrop-canvas {`r`n  contain: strict;
+.raindrop-canvas {  contain: strict;
     image-rendering: auto;
     position: fixed;
     top: 0;
@@ -98,7 +98,7 @@ body {
 }
 
 /* 导航栏 - 左侧 Products 按钮 */
-.navbar-left {`r`n  will-change: transform, opacity;
+.navbar-left {  will-change: transform, opacity;
     position: fixed;
     top: 150px;
     left: 50px;
@@ -263,7 +263,7 @@ body {
 }
 
 
-.navbar-right {`r`n  will-change: transform, opacity;
+.navbar-right {  will-change: transform, opacity;
     position: fixed;
     top: 20px;
     right: 50px;
@@ -843,12 +843,18 @@ body {
     .product-card {
         width: 280px;
     }
+
+    .speech-bubble {
+        max-width: min(220px, calc(100vw - 24px));
+        font-size: 12px;
+        padding: 8px 12px;
+    }
 }
 
 /* ========================================
    Miku 看板娘 (Mascot)
    ======================================== */
-.miku-mascot-container {`r`n  will-change: transform;`r`n  transform: translateZ(0);
+.miku-mascot-container {  will-change: transform;  transform: translateZ(0);
     position: fixed;
     left: 20px;
     bottom: 20px;
@@ -990,6 +996,73 @@ body {
     -moz-user-drag: none;
     -o-user-drag: none;
     pointer-events: none;
+}
+
+
+/* ========================================
+   看板娘气泡对话 (Speech Bubble)
+   ======================================== */
+.speech-bubble {
+    position: absolute;
+    bottom: calc(100% + 18px);
+    left: 0;
+    max-width: min(260px, calc(100vw - 32px));
+    min-width: 96px;
+    padding: 10px 14px;
+    background: rgba(20, 20, 30, 0.55);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    font-family: 'General Sans', 'Poppins', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    white-space: pre-wrap;
+    word-break: break-word;
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+    z-index: 1002;
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+}
+
+.speech-bubble.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 气泡小三角（指向看板娘） */
+.speech-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 22px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 10px solid rgba(20, 20, 30, 0.55);
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+}
+
+/* 看板娘被拖到屏幕右半边时，气泡改为右对齐，防止溢出 */
+.speech-bubble.align-right {
+    left: auto;
+    right: 0;
+}
+
+.speech-bubble.align-right::after {
+    left: auto;
+    right: 22px;
 }
 
 /* ========================================
